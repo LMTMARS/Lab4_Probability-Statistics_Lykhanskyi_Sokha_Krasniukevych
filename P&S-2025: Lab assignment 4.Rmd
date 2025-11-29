@@ -17,7 +17,167 @@ date: "2025-11-29"
 ```{r}
 
 ```
-#Problem4
+# Problem 4:
 ```{r}
+# Load required libraries
+library(ggplot2)  # For creating plots
 
+# Read data from CSV file
+data <- read.csv("data.csv")
+
+# View data structure
+print("Data structure:")
+print(head(data))
+print(summary(data))
+
+# (a)
+scatter_plot <- ggplot(data, aes(x = time_study, y = Marks)) + geom_point(color = "blue", size = 3, alpha = 0.6) +  # Data points
+  
+  labs(title = "Marks(Y) | Time(X)", x = "Time", y = "Marks") +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5, face = "bold"))
+
+print(scatter_plot)
+
+#The plot shows a positive linear relationship between study time and marks
+#The more a student studies, the higher their marks tend to be
+
+# ==================== (b) Fitting Linear Regression ====================
+
+# To derive coefficients we will use Least Square Method
+X <- data$time_study  # Independent variable
+Y <- data$Marks       # Dependent variable
+n <- length(X)        # Sample size
+
+cat(sprintf("Sample size: n = %d\n\n", n))
+
+# Calculate means
+mean_X <- mean(X)
+mean_Y <- mean(Y)
+cat(sprintf("Mean of X (study time): %.3f hours\n", mean_X))
+cat(sprintf("Mean of Y (marks): %.3f points\n\n", mean_Y))
+
+# Calculate sums needed for formulas
+S_XY <- sum((X - mean_X) * (Y - mean_Y))
+S_XX <- sum((X - mean_X)^2)
+
+cat(sprintf("Σ[(Xi - X̄)(Yi - Ȳ)] = %.3f\n", S_XY))
+cat(sprintf("Σ[(Xi - X̄)²] = %.3f\n\n", S_XX))
+
+# b = Σ[(Xi - X̄)(Yi - Ȳ)] / Σ[(Xi - X̄)²]
+b <- S_XY / S_XX
+
+cat("LEAST SQUARES FORMULA FOR SLOPE (b):\n")
+cat("b = Σ[(Xi - X̄)(Yi - Ȳ)] / Σ[(Xi - X̄)²]\n")
+cat(sprintf("b = %.3f / %.3f = %.3f\n\n", S_XY, S_XX, b))
+
+# Calculate a (intercept) using formula
+# a = Ȳ - b * X
+a <- mean_Y - b * mean_X
+
+cat(sprintf("a = %.3f - %.3f * %.3f = %.3f\n\n", mean_Y, b, mean_X, a))
+
+cat(sprintf("Marks = %.3f + %.3f * time_study\n", a, b))
+
+# Verify with R's built-in lm() function
+cat("Verification using R's lm() function:\n")
+model <- lm(Marks ~ time_study, data = data)
+print(summary(model))
+
+a_lm <- coef(model)[1]
+b_lm <- coef(model)[2]
+
+cat(sprintf("Manual calculation:  a = %.6f, b = %.6f\n", a, b))
+cat(sprintf("R's lm() function:   a = %.6f, b = %.6f\n", a_lm, b_lm))
+
+cat(sprintf("b = %.3f: Each additional hour of study increases marks by %.3f points\n", b_lm, b_lm))
+cat(sprintf("a = %.3f: Expected marks with 0 hours of study (baseline)\n\n", a_lm))
+
+regression_plot <- ggplot(data, aes(x = time_study, y = Marks)) +
+  geom_point(color = "blue", size = 3, alpha = 0.6) +
+  geom_smooth(method = "lm", se = TRUE, color = "red", fill = "pink", alpha = 0.2) +
+  labs(
+    title = "Linear Regression: Marks(Y) | Time(X)",
+    x = "Time",
+    y = "Marks"
+  ) +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5, face = "bold"))
+
+print(regression_plot)
+
+# c)
+
+# R-squared (coefficient of determination)
+r_squared <- summary(model)$r.squared
+adj_r_squared <- summary(model)$adj.r.squared
+
+cat(sprintf("R² = %.4f\n", r_squared))
+cat(sprintf("Adjusted R² = %.4f\n", adj_r_squared))
+cat(sprintf("%.2f%% of variation in marks is explained by study time\n\n", r_squared * 100))
+
+# Residual Standard Error
+rse <- summary(model)$sigma
+cat(sprintf("Residual Standard Error (RSE) = %.3f\n", rse))
+cat("RSE shows the typical deviation of actual values from predicted values\n\n")
+
+# Residual analysis
+residuals <- residuals(model)
+cat("Residuals statistics:\n")
+cat(sprintf("Mean of residuals: %.6f \n", mean(residuals)))
+# As we can see the mean of residuals is 0, as it should be
+cat(sprintf("Standard deviation of residuals: %.3f\n\n", sd(residuals)))
+
+# Residual plot
+residual_plot <- ggplot(data.frame(fitted = fitted(model), residuals = residuals), 
+                        aes(x = fitted, y = residuals)) +
+  geom_point(color = "darkgreen", size = 3) +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "red") +
+  labs(
+    title = "Residuals plot",
+    x = "Fitted Values",
+    y = "Residuals"
+  ) +
+  theme_minimal()
+
+print(residual_plot)
+
+# d)
+
+cat("Hypotheses:\n")
+cat("H₀: b = 0 (Time spent studying does NOT affect marks)\n")
+cat("H₁: b ≠ 0 (Time spent studying DOES affect marks)\n\n")
+
+# t-statistic
+t_val <- summary(model)$coefficients[2, 3]  # t-value
+p_val <- summary(model)$coefficients[2, 4]  # p-value
+deg_of_freedom <- model$df.residual  # Degrees of freedom
+
+cat(sprintf("t-statistic = %.4f\n", t_val))
+cat(sprintf("Degrees of freedom = %d\n", deg_of_freedom))
+cat(sprintf("p-value = %.6f\n\n", p_val))
+
+# Critical value at α = 0.05
+alpha <- 0.05
+t_crit <- qt(1 - alpha/2, deg_of_freedom)
+cat(sprintf("Critical value t at α = 0.05: ±%.4f\n\n", t_crit))
+
+# Conclusion
+cat(sprintf("p-value (%.6f) < α (%.2f)\n", p_val, alpha))
+cat("We reject H₀. Study time is a significant predictor of marks.\n")
+cat(sprintf("Additional hour of study increases marks by %.3f points.\n\n", b_lm))
+
+# e)
+
+alice_study_time <- 8
+alice_prediction <- predict(model, newdata = data.frame(time_study = alice_study_time), interval = "prediction", level = 0.95)
+
+# Alice studying for 8 hours will result in:
+cat(alice_prediction[1])
+
+# f)
+
+# 1. Increasing sample size will lead to more accurate results
+# 2. Adding other predictors would also lead to more accurate results.
+# 3. It might be a good idea to look for a non-linear relationships. The resulting model might give more accurate predictions.
 ```
