@@ -1,0 +1,6 @@
+---
+title: 'P&S-2025: Lab assignment 4'
+author: "Lidiia Sokha, Oleksandr Lykhanskyi, Mariia Krasniukevych"
+output: html_document
+date: "2025-11-29"
+---
