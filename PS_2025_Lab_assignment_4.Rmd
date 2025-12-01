@@ -116,11 +116,12 @@ plot(Fn_x,
      xlab = "x",
      ylab = "CDF",
      col = "blue",
-     lwd = 2)
+     lwd = 2,
+     cex = 0.4)
 
 xx <- seq(min(x), max(x), length.out = 500)
 lines(xx, pnorm(xx, mean = mu_hat, sd = sigma_hat),
-      col = "red", lwd = 2)
+      col = "red", lwd = 2, cex = 0.4)
 
 
 #Part(b)
@@ -129,11 +130,12 @@ plot(Fn_x,
      xlab = "x",
      ylab = "CDF",
      col = "blue",
-     lwd = 2)
+     lwd = 2,
+     cex = 0.4)
 
 xx_b <- seq(min(x), max(x), length.out = 500)
 lines(xx_b, pexp(xx_b, rate = lambda),
-      col = "red", lwd = 2)
+      col = "red", lwd = 2, cex = 0.4)
 
 #Part(c)
 plot(Fn_x,
@@ -141,9 +143,10 @@ plot(Fn_x,
      xlab = "x",
      ylab = "CDF",
      col = "blue",
-     lwd = 2)
+     lwd = 2,
+     cex = 0.4)
 
-lines(Fn_y, col = "darkred", lwd = 2)
+lines(Fn_y, col = "darkred", lwd = 2, cex = 0.4)
 ```
 
 #Problem4
