@@ -3,21 +3,127 @@ title: 'P&S-2025: Lab assignment 4'
 author: "Lidiia Sokha, Oleksandr Lykhanskyi, Mariia Krasniukevych"
 output: html_document
 date: "2025-11-29"
+editor_options: 
+  markdown: 
+    wrap: 72
 ---
 
-#Problem1
+#Problem1 We test the hypotheses $$
+H_0: \mu_1 = \mu_2, \qquad 
+H_1: \mu_1 \neq \mu_2.
+$$ Since the variances of both samples are known and equal to 1, the
+appropriate test for the equality of two means is the two-sample z-test.
+The two-sample z-statistic has the form: $$
+Z = \frac{\bar{X} - \bar{Y}}{\sqrt{\frac{\sigma^2}{n} + \frac{\sigma^2}{m}}}.
+$$ For a two-sided test with significance level $\alpha = 0.05$, the
+rejection region is $$
+|Z| > z_{1-\alpha/2}.
+$$ Since $$
+z_{1 - 0.05/2} = z_{0.975} \approx 1.96,
+$$ we reject $H_0$ if $$
+|Z| > 1.96.
+$$ The p-value of a two-sided $Z$-test is $$
+p = 2\left(1 - \Phi(|Z|)\right).$$
+
 ```{r}
+id_number <- 37
+
+f <- function(k, n) {
+  x <- k*log(k^2 * n + pi)
+  fractional_part <- x - floor(x)
+  return(fractional_part)
+}
+
+all_values <- 1:150
+a.data <- sapply(all_values, f, id_number)
+
+x_k <- qnorm(a.data[1:100])
+y_l <- qnorm(a.data[101:150])
+
+n <- 100
+m <- 50
+sigma <- 1
+
+x_bar <- mean(x_k)
+y_bar <- mean(y_l)
+Z <- (x_bar - y_bar)/(sqrt(sigma/n + sigma/m))
+
+alpha <- 0.05
+z_critical <- qnorm(1-alpha/2)
+p_value <- 2*(1 - pnorm(abs(Z)))
+
+
+cat("Z =", Z, "\n")
+cat("critical z =", z_critical, "\n")
+cat("p-value =", p_value, "\n")
 
 ```
-#Problem2
+
+Since \|Z\| = 1.054182 \< 1.959964, the test statistic does not fall
+into the rejection region. Therefore, there is no evidence to reject the
+null hypothesis. Because p\>0.05 we again conclude that the null
+hypothesis should not be rejected.
+
+#Problem2 We test the hypotheses $$
+H_0: \sigma_1^2 = \sigma_2^2 
+\qquad \text{vs.} \qquad
+H_1: \sigma_1^2 > \sigma_2^2.
+$$
+
+We use the classical F-test for the equality of two variances.\
+The test statistic is defined as $$
+F = \frac{S_1^2}{S_2^2},
+$$ where $S_1^2$ and $S_2^2$ are the sample variances.\
+Under the null hypothesis, $$
+F \sim F_{\,n-1,\,m-1}.
+$$
+
+Since the alternative is one-sided ($\sigma_1^2 > \sigma_2^2$), the
+rejection region is $$
+F > F_{1-\alpha}(n-1, m-1).
+$$
+
+$$
+F_{\text{crit}} = F_{0.95}(99, 49) = 1.530999.
+$$
+
+The p-value is computed as $$
+p = P(F_{99,49} \ge F_{\text{obs}})
+    = 1 - F_{F}(F_{\text{obs}}; 99,49),
+$$ where $F_F$ is the CDF of the F-distribution.\
+
 ```{r}
+df1 <- n - 1  
+df2 <- m - 1  
+
+s1_var <- var(x_k)  
+s2_var <- var(y_l)
+
+f_stat <- s1_var / s2_var
+
+alpha <- 0.05
+f_critical <- qf(1 - alpha, df1, df2)
+
+p_value <- 1 - pf(f_stat, df1, df2)
+
+cat("F =", f_stat, "\n")
+cat("critical f =", f_critical, "\n")
+cat("p-value =", p_value, "\n")
 
 ```
+
+Since F = 1.158672 \< 1.530999 the test statistic does not fall into the
+rejection region. The p-value is p = 0.2873654 \> 0.05, there is no
+evidence to reject the null hypothesis.
+
 #Problem3
+
 ```{r}
 
 ```
+
 #Problem4
+
 ```{r}
 
 ```
