@@ -2,13 +2,14 @@
 title: 'P&S-2025: Lab assignment 4'
 author: "Lidiia Sokha, Oleksandr Lykhanskyi, Mariia Krasniukevych"
 output: html_document
-date: "2025-11-29"
+date: "2024-11-29"
 editor_options: 
   markdown: 
     wrap: 72
 ---
 
-#Problem1 We test the hypotheses $$
+# Problem1 
+We test the hypotheses $$
 H_0: \mu_1 = \mu_2, \qquad 
 H_1: \mu_1 \neq \mu_2.
 $$ Since the variances of both samples are known and equal to 1, the
@@ -24,56 +25,47 @@ $$ we reject $H_0$ if $$
 |Z| > 1.96.
 $$ The p-value of a two-sided $Z$-test is $$
 p = 2\left(1 - \Phi(|Z|)\right).$$
-
 ```{r}
 id_number <- 37
-
 f <- function(k, n) {
   x <- k*log(k^2 * n + pi)
   fractional_part <- x - floor(x)
   return(fractional_part)
 }
-
 all_values <- 1:150
 a.data <- sapply(all_values, f, id_number)
-
 x_k <- qnorm(a.data[1:100])
 y_l <- qnorm(a.data[101:150])
-
 n <- 100
 m <- 50
 sigma <- 1
-
 x_bar <- mean(x_k)
 y_bar <- mean(y_l)
 Z <- (x_bar - y_bar)/(sqrt(sigma/n + sigma/m))
-
 alpha <- 0.05
 z_critical <- qnorm(1-alpha/2)
 p_value <- 2*(1 - pnorm(abs(Z)))
-
-
 cat("Z =", Z, "\n")
 cat("critical z =", z_critical, "\n")
 cat("p-value =", p_value, "\n")
-
 ```
 
-Since \|Z\| = 1.054182 \< 1.959964, the test statistic does not fall
+Since |Z| = 1.054182 < 1.959964, the test statistic does not fall
 into the rejection region. Therefore, there is no evidence to reject the
-null hypothesis. Because p\>0.05 we again conclude that the null
+null hypothesis. Because p>0.05 we again conclude that the null
 hypothesis should not be rejected.
 
-#Problem2 We test the hypotheses $$
+# Problem2 
+We test the hypotheses $$
 H_0: \sigma_1^2 = \sigma_2^2 
 \qquad \text{vs.} \qquad
 H_1: \sigma_1^2 > \sigma_2^2.
 $$
 
-We use the classical F-test for the equality of two variances.\
+We use the classical F-test for the equality of two variances.
 The test statistic is defined as $$
 F = \frac{S_1^2}{S_2^2},
-$$ where $S_1^2$ and $S_2^2$ are the sample variances.\
+$$ where $S_1^2$ and $S_2^2$ are the sample variances.
 Under the null hypothesis, $$
 F \sim F_{\,n-1,\,m-1}.
 $$
@@ -82,7 +74,6 @@ Since the alternative is one-sided ($\sigma_1^2 > \sigma_2^2$), the
 rejection region is $$
 F > F_{1-\alpha}(n-1, m-1).
 $$
-
 $$
 F_{\text{crit}} = F_{0.95}(99, 49) = 1.530999.
 $$
@@ -90,40 +81,320 @@ $$
 The p-value is computed as $$
 p = P(F_{99,49} \ge F_{\text{obs}})
     = 1 - F_{F}(F_{\text{obs}}; 99,49),
-$$ where $F_F$ is the CDF of the F-distribution.\
-
+$$ where $F_F$ is the CDF of the F-distribution.
 ```{r}
 df1 <- n - 1  
 df2 <- m - 1  
-
 s1_var <- var(x_k)  
 s2_var <- var(y_l)
-
 f_stat <- s1_var / s2_var
-
 alpha <- 0.05
 f_critical <- qf(1 - alpha, df1, df2)
-
 p_value <- 1 - pf(f_stat, df1, df2)
-
 cat("F =", f_stat, "\n")
 cat("critical f =", f_critical, "\n")
 cat("p-value =", p_value, "\n")
-
 ```
 
-Since F = 1.158672 \< 1.530999 the test statistic does not fall into the
-rejection region. The p-value is p = 0.2873654 \> 0.05, there is no
+Since F = 1.158672 < 1.530999 the test statistic does not fall into the
+rejection region. The p-value is p = 0.2873654 > 0.05, there is no
 evidence to reject the null hypothesis.
 
-#Problem3
-
+# Problem3
 ```{r}
+#Saving data
+n <- 37
+k_nums <- 1:150
+
+#Making a_function from the task
+a_function <- function(k, n) {
+  x <- k * log(k^2 * n + pi)
+  x - floor(x)
+}
+
+#Data for observation
+a_data <- a_function(k_nums, n)
+x <- qnorm(a_data[1:100])
+y <- qnorm(a_data[101:150])
+
+mu_hat <- mean(x)
+sigma_hat <- sd(x)
+
+#(a)
+ks_test1 <- ks.test(x, "pnorm", mean = mu_hat, sd = sigma_hat)
+cat("Part (a)")
+ks_test1
+
+#(b)
+lambda <- 1
+ks_test2 <- ks.test(x, "pexp", rate = lambda)
+cat("Part (b)")
+ks_test2
+
+#(c)
+ks_test3 <- ks.test(x, y)
+cat("Part (c)")
+ks_test3
 
 ```
+## Main concept of KS test:
 
-#Problem4
+**The Kolmogorov-Smirnov test is a non-parametric (usually, here we have an exception in part (a)) goodness-of-fit test.**
 
+There is two types of KS test:
+
+-   **One-sampled KS test:**
+
+Comparing **empirical CDF** of given sample with a **theoretical CDF**
+
+-   **Two-sampled KS test**
+
+Comparing **empirical CDF** of two given samples (in our case X and Y)
+
+The test-statistic here is:
+
+$D = \sup_{x} \left| F_n(x) - F(x) \right|$
+
+which shows the biggest distance between two **CDFs.**
+
+In a result we can say that we comparing two hypothesis:
+
+$H_0$: two samples come from the same distribution,
+
+$H_1$: two samples come from different distributions.
+
+And $p$-value tells if the distance large enough to reject $H_0$.
+
+## Explanation of the test results:
+
+**Part(a):**
+
+$D = 0.069821,p-value = 0.7142$
+
+The small value of $D$ shows that distance between **empirical CDF** and **theoretical CDF** is really small.
+
+Big value of $p-value$ shows that we don't have enough evidence to reject $H_0$
+
+**Part(b):**
+
+$D=0.53293, p-value < 2.2e-16$
+
+Big value of $D$ shows that distance between **empirical CDF** and **theoretical CDF** is too large to observe they're from the same distribution.
+
+Small *(close to zero)* value of $p-value$ shows that we have strong evidance to reject $H_0$
+
+**Part(с):**
+
+$D=0.11, p-value = 0.8042$
+
+The small value of $D$ shows that distance between two **empirical CDFs** is really small and we can observe they're from the same distribution.
+
+Big value of $p-value$ shows that we don't have enough evidence to reject $H_0$
+
+## Here are visualizations of empirical and theoretical CDFs for all tests
 ```{r}
+Fn_x <- ecdf(x)
+Fn_y <- ecdf(y)
 
+#Part(a)
+plot(Fn_x,
+     main = "Part (a): Empirical CDF vs Normal CDF",
+     xlab = "x",
+     ylab = "CDF",
+     col = "blue",
+     lwd = 2,
+     cex = 0.4)
+
+xx <- seq(min(x), max(x), length.out = 500)
+lines(xx, pnorm(xx, mean = mu_hat, sd = sigma_hat),
+      col = "red", lwd = 2, cex = 0.4)
+
+
+#Part(b)
+plot(Fn_x,
+     main = "Part (b): Empirical CDF vs Exponential CDF",
+     xlab = "x",
+     ylab = "CDF",
+     col = "blue",
+     lwd = 2,
+     cex = 0.4)
+
+xx_b <- seq(min(x), max(x), length.out = 500)
+lines(xx_b, pexp(xx_b, rate = lambda),
+      col = "red", lwd = 2, cex = 0.4)
+
+#Part(c)
+plot(Fn_x,
+     main = "Part (c): Empirical CDFs of X and Y",
+     xlab = "x",
+     ylab = "CDF",
+     col = "blue",
+     lwd = 2,
+     cex = 0.4)
+
+lines(Fn_y, col = "darkred", lwd = 2, cex = 0.4)
+```
+
+# Problem 4
+```{r}
+# Load required libraries
+library(ggplot2)  # For creating plots
+
+# Read data from CSV file
+data <- read.csv("data.csv")
+
+# View data structure
+print("Data structure:")
+print(head(data))
+print(summary(data))
+
+# (a)
+scatter_plot <- ggplot(data, aes(x = time_study, y = Marks)) + geom_point(color = "blue", size = 3, alpha = 0.6) +  # Data points
+  
+  labs(title = "Marks(Y) | Time(X)", x = "Time", y = "Marks") +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5, face = "bold"))
+
+print(scatter_plot)
+
+#The plot shows a positive linear relationship between study time and marks
+#The more a student studies, the higher their marks tend to be
+
+# b)
+# To derive coefficients we will use Least Square Method
+X <- data$time_study  # Independent variable
+Y <- data$Marks       # Dependent variable
+n <- length(X)        # Sample size
+
+cat(sprintf("Sample size: n = %d\n\n", n))
+
+# Calculate means
+mean_X <- mean(X)
+mean_Y <- mean(Y)
+cat(sprintf("Mean of X (study time): %.3f hours\n", mean_X))
+cat(sprintf("Mean of Y (marks): %.3f points\n\n", mean_Y))
+
+# Calculate sums needed for formulas
+S_XY <- sum((X - mean_X) * (Y - mean_Y))
+S_XX <- sum((X - mean_X)^2)
+
+cat(sprintf("Σ[(Xi - X̄)(Yi - Ȳ)] = %.3f\n", S_XY))
+cat(sprintf("Σ[(Xi - X̄)²] = %.3f\n\n", S_XX))
+
+# b = Σ[(Xi - X̄)(Yi - Ȳ)] / Σ[(Xi - X̄)²]
+b <- S_XY / S_XX
+
+cat("LEAST SQUARES FORMULA FOR SLOPE (b):\n")
+cat("b = Σ[(Xi - X̄)(Yi - Ȳ)] / Σ[(Xi - X̄)²]\n")
+cat(sprintf("b = %.3f / %.3f = %.3f\n\n", S_XY, S_XX, b))
+
+# Calculate a (intercept) using formula
+# a = Ȳ - b * X
+a <- mean_Y - b * mean_X
+
+cat(sprintf("a = %.3f - %.3f * %.3f = %.3f\n\n", mean_Y, b, mean_X, a))
+
+cat(sprintf("Marks = %.3f + %.3f * time_study\n", a, b))
+
+# Verify with R's built-in lm() function
+cat("Verification using R's lm() function:\n")
+model <- lm(Marks ~ time_study, data = data)
+print(summary(model))
+
+a_lm <- coef(model)[1]
+b_lm <- coef(model)[2]
+
+cat(sprintf("Manual calculation:  a = %.6f, b = %.6f\n", a, b))
+cat(sprintf("R's lm() function:   a = %.6f, b = %.6f\n", a_lm, b_lm))
+
+cat(sprintf("b = %.3f: Each additional hour of study increases marks by %.3f points\n", b_lm, b_lm))
+cat(sprintf("a = %.3f: Expected marks with 0 hours of study (baseline)\n\n", a_lm))
+
+regression_plot <- ggplot(data, aes(x = time_study, y = Marks)) +
+  geom_point(color = "blue", size = 3, alpha = 0.6) +
+  geom_smooth(method = "lm", se = TRUE, color = "red", fill = "pink", alpha = 0.2) +
+  labs(
+    title = "Linear Regression: Marks(Y) | Time(X)",
+    x = "Time",
+    y = "Marks"
+  ) +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5, face = "bold"))
+
+print(regression_plot)
+
+# c)
+
+# R-squared (coefficient of determination)
+r_squared <- summary(model)$r.squared
+adj_r_squared <- summary(model)$adj.r.squared
+
+cat(sprintf("R² = %.4f\n", r_squared))
+cat(sprintf("Adjusted R² = %.4f\n", adj_r_squared))
+cat(sprintf("%.2f%% of variation in marks is explained by study time\n\n", r_squared * 100))
+
+# Residual Standard Error
+rse <- summary(model)$sigma
+cat(sprintf("Residual Standard Error (RSE) = %.3f\n", rse))
+cat("RSE shows the typical deviation of actual values from predicted values\n\n")
+
+# Residual analysis
+residuals <- residuals(model)
+cat("Residuals statistics:\n")
+cat(sprintf("Mean of residuals: %.6f \n", mean(residuals)))
+# As we can see the mean of residuals is 0, as it should be
+cat(sprintf("Standard deviation of residuals: %.3f\n\n", sd(residuals)))
+
+# Residual plot
+residual_plot <- ggplot(data.frame(fitted = fitted(model), residuals = residuals), 
+                        aes(x = fitted, y = residuals)) +
+  geom_point(color = "darkgreen", size = 3) +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "red") +
+  labs(
+    title = "Residuals plot",
+    x = "Fitted Values",
+    y = "Residuals"
+  ) +
+  theme_minimal()
+
+print(residual_plot)
+
+# d)
+
+cat("Hypotheses:\n")
+cat("H₀: b = 0 (Time spent studying does NOT affect marks)\n")
+cat("H₁: b ≠ 0 (Time spent studying DOES affect marks)\n\n")
+
+# t-statistic
+t_val <- summary(model)$coefficients[2, 3]  # t-value
+p_val <- summary(model)$coefficients[2, 4]  # p-value
+deg_of_freedom <- model$df.residual  # Degrees of freedom
+
+cat(sprintf("t-statistic = %.4f\n", t_val))
+cat(sprintf("Degrees of freedom = %d\n", deg_of_freedom))
+cat(sprintf("p-value = %.6f\n\n", p_val))
+
+# Critical value at α = 0.05
+alpha <- 0.05
+t_crit <- qt(1 - alpha/2, deg_of_freedom)
+cat(sprintf("Critical value t at α = 0.05: ±%.4f\n\n", t_crit))
+
+# Conclusion
+cat(sprintf("p-value (%.6f) < α (%.2f)\n", p_val, alpha))
+cat("We reject H₀. Study time is a significant predictor of marks.\n")
+cat(sprintf("Additional hour of study increases marks by %.3f points.\n\n", b_lm))
+
+# e)
+
+alice_study_time <- 8
+alice_prediction <- predict(model, newdata = data.frame(time_study = alice_study_time), interval = "prediction", level = 0.95)
+
+# Alice studying for 8 hours will result in:
+cat(alice_prediction[1])
+
+# f)
+
+# 1. Increasing sample size will lead to more accurate results
+# 2. Adding other predictors would also lead to more accurate results.
+# 3. It might be a good idea to look for a non-linear relationships. The resulting model might give more accurate predictions.
 ```
